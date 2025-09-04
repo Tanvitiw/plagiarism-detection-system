@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI-Driven Plagiarism Checker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .progress { width: 0%; transition: width 0.5s ease; }
+        .sticky { position: sticky; top: 0; z-index: 50; }
+        .gradient-bg { background: linear-gradient(135deg, #dbeafe, #f0f9ff); }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 100; }
+        .modal-content { background-color: white; margin: 5% auto; padding: 20px; width: 90%; max-width: 600px; border-radius: 8px; transform: translateY(-50px); opacity: 0; transition: all 0.3s ease-out; }
+        .modal-content.active { transform: translateY(0); opacity: 1; }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(40px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes slideIn {
+            from { transform: translateY(100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .animate-fadeInUp { animation: fadeInUp 1s ease-out both; }
+        .popup { cursor: pointer; transition: transform 0.2s ease, box-shadow 0.2s ease; }
+        .popup:hover { transform: scale(1.05); box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        [data-animate] { opacity: 0; transform: translateY(30px); transition: all 0.8s ease; }
+        [data-animate].show { opacity: 1; transform: translateY(0); }
+        .report-list { max-height: 400px; overflow-y: auto; }
+        .report-item { transition: background-color 0.2s ease; }
+        .report-item:hover { background-color: #f3f4f6; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+    <!-- Navigation Bar -->
+    <nav class="bg-indigo-100 text-gray-800 p-4 sticky shadow-md">
+        <div class="max-w-6xl mx-auto flex justify-between items-center">
+            <div class="text-2xl font-bold">AI-Driven Plagiarism Checker</div>
+            <div class="space-x-4">
+                <a href="#home" class="nav-link hover:text-indigo-500">Home</a>
+                <a href="#features" class="nav-link hover:text-indigo-500">Features</a>
+                <a href="#reports" class="nav-link hover:text-indigo-500">Reports</a>
+                <a href="#about" class="nav-link hover:text-indigo-500">About</a>
+                <a href="#contact" class="nav-link hover:text-indigo-500">Contact</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="home" class="gradient-bg py-20 text-center">
+        <div class="max-w-4xl mx-auto px-6">
+            <h1 class="text-5xl font-extrabold mb-4 text-gray-800 animate-fadeInUp">Your Originality, My Mission</h1>
+            <p class="text-lg mb-8 text-gray-700 animate-fadeInUp">AI-powered protection for your words. Check for plagiarism and AI-written content instantly.</p>
+        </div>
+    </section>
+
+    <!-- Plagiarism Checker Section -->
+    <section id="checker" class="py-16 bg-white" data-animate>
+        <div class="max-w-4xl mx-auto text-center px-6">
+            <h2 class="text-3xl font-bold text-gray-800 mb-6">Check Your Content</h2>
+            <p class="text-gray-600 mb-8">Paste your text or upload a file to check for plagiarism and AI-generated content.</p>
+            <div class="bg-gray-50 p-6 rounded-lg shadow-lg max-w-2xl mx-auto">
+                <form id="checkForm" action="/check" method="post" enctype="multipart/form-data" class="space-y-4">
+                    <div>
+                        <label class="block text-sm text-gray-600">Paste Your Text</label>
+                        <textarea id="text" name="text" rows="5" class="w-full border rounded p-2 focus:ring-indigo-400 focus:border-indigo-400"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-600">Upload File (PDF, TXT, DOCX)</label>
+                        <input type="file" id="file" name="file" accept=".pdf,.txt,.docx" class="w-full text-sm file:p-2 file:bg-indigo-50 file:rounded file:border-0 file:text-indigo-700 hover:file:bg-indigo-100">
+                    </div>
+                    <button type="submit" class="w-full bg-indigo-500 text-white p-2 rounded hover:bg-indigo-600">Check Now</button>
+                </form>
+                <div id="checkResult" class="mt-4 text-sm text-gray-600"></div>
+            </div>
+            <button id="viewReportsBtn" class="mt-6 bg-indigo-500 text-white px-6 py-2 rounded hover:bg-indigo-600 transition duration-300">View Reports</button>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="py-16" data-animate>
+        <div class="max-w-6xl mx-auto text-center">
+            <h2 class="text-3xl font-bold text-gray-800 mb-8">Smart Detection Capabilities</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 px-4">
+                <div class="bg-white p-6 rounded-lg shadow-md popup">
+                    <h3 class="text-xl font-semibold text-indigo-600 mb-2">Plagiarism Check</h3>
+                    <p class="text-gray-600">Scan for copied content from online and offline sources in real time.</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-md popup">
+                    <h3 class="text-xl font-semibold text-indigo-600 mb-2">AI Content Detection</h3>
+                    <p class="text-gray-600">Detect text generated by AI tools like ChatGPT, Bard, and more.</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-md popup">
+                    <h3 class="text-xl font-semibold text-indigo-600 mb-2">Language Support</h3>
+                    <p class="text-gray-600">Future-ready to support content checking in multiple languages.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Reports Modal -->
+    <div id="reportModal" class="modal fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center hidden">
+        <div class="modal-content bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
+            <h3 class="text-2xl font-bold mb-4 text-gray-800">Recent Reports</h3>
+            <div id="reportList" class="report-list space-y-2">
+                <!-- Reports will load here -->
+            </div>
+            <button id="closeModalBtn" class="mt-4 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition duration-300">Close</button>
+        </div>
+    </div>
+
+    <!-- About Section -->
+    <section id="about" class="py-20 bg-white" data-animate>
+        <div class="max-w-6xl mx-auto px-6 text-center">
+            <h2 class="text-4xl font-bold text-gray-800 mb-6">About AI Plagiarism Checker</h2>
+            <p class="text-gray-600 text-lg mb-6 text-left">
+                This project is a solo creation born from a personal need to validate content authenticity with clarity and confidence. I’ve worked diligently to ensure the platform is both powerful and easy to use, letting you focus on your writing while I handle the verification behind the scenes.
+            </p>
+            <p class="text-gray-600 text-lg mb-8 text-left">
+                Built entirely with open-source tools and custom logic, this project represents hours of dedication toward solving a real-world problem. With every line of code, the intention was to craft a safe, reliable, and efficient checker that anyone—student, researcher, or writer—can trust.
+            </p>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mt-10">
+                <div class="bg-indigo-50 p-6 rounded-lg shadow-md popup">
+                    <h3 class="text-xl font-semibold mb-2 text-indigo-600">Mission</h3>
+                    <p class="text-gray-700 text-sm">To build a responsible tool that empowers users to protect their original content from misuse.</p>
+                </div>
+                <div class="bg-indigo-50 p-6 rounded-lg shadow-md popup">
+                    <h3 class="text-xl font-semibold mb-2 text-indigo-600">Innovation</h3>
+                    <p class="text-gray-700 text-sm">Using state-of-the-art NLP models like BERT to analyze content deeply, beyond surface-level checks.</p>
+                </div>
+                <div class="bg-indigo-50 p-6 rounded-lg shadow-md popup">
+                    <h3 class="text-xl font-semibold mb-2 text-indigo-600">Privacy</h3>
+                    <p class="text-gray-700 text-sm">User trust is everything. No content is stored, tracked, or shared. What you upload stays yours.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="py-20 bg-indigo-50" data-animate>
+        <div class="max-w-4xl mx-auto text-center px-6">
+            <h2 class="text-4xl font-bold text-gray-800 mb-6">Contact Me</h2>
+            <p class="text-gray-600 mb-8">Feel free to reach out for collaboration, feedback, or support. I appreciate your interest and look forward to helping you!</p>
+            <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-xl mx-auto">
+                <form id="contactForm" action="/contact" method="post" class="space-y-4">
+                    <input type="text" name="name" placeholder="Your Name" class="w-full border p-3 rounded focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                    <input type="email" name="email" placeholder="Your Email" class="w-full border p-3 rounded focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                    <textarea rows="5" name="message" placeholder="Your Message" class="w-full border p-3 rounded focus:outline-none focus:ring-2 focus:ring-indigo-300"></textarea>
+                    <button type="submit" class="w-full bg-indigo-400 text-white py-2 rounded hover:bg-indigo-500 transition">Send Message</button>
+                </form>
+                <p class="text-sm text-gray-500 mt-4">Or email me at <a href="mailto:support@aiplagiarismchecker.com" class="text-indigo-600 underline">support@aiplagiarismchecker.com</a></p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Modal Pop-up -->
+    <div id="contactModal" class="modal fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center hidden">
+        <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md text-center animate-fadeIn">
+            <h3 class="text-xl font-bold mb-4 text-gray-800">Message Status</h3>
+            <p id="modalMessage" class="mb-6 text-gray-600"></p>
+            <div class="flex justify-center space-x-4">
+                <button id="modalOk" class="bg-indigo-500 text-white px-4 py-2 rounded hover:bg-indigo-600">OK</button>
+                <button id="modalCancel" class="bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-8">
+        <div class="max-w-6xl mx-auto text-center">
+            <p class="mb-4">© 2025 AI-Driven Plagiarism Checker. All rights reserved.</p>
+            <div class="space-x-4">
+                <a href="#privacy" class="hover:text-indigo-300">Privacy Policy</a>
+                <a href="#terms" class="hover:text-indigo-300">Terms of Service</a>
+                <a href="#contact" class="hover:text-indigo-300">Contact Me</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Animate on scroll
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('show');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.15 });
+
+        document.querySelectorAll('[data-animate]').forEach(el => observer.observe(el));
+
+        // Contact Form Submission with Modal
+        const contactForm = document.getElementById('contactForm');
+        const contactModal = document.getElementById('contactModal');
+        const modalMessage = document.getElementById('modalMessage');
+        const modalOk = document.getElementById('modalOk');
+        const modalCancel = document.getElementById('modalCancel');
+
+        contactForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const formData = new FormData(contactForm);
+
+            fetch('/contact', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                modalMessage.textContent = data.message || data.error;
+                contactModal.classList.remove('hidden');
+                if (data.error) {
+                    modalMessage.style.color = 'red';
+                } else {
+                    modalMessage.style.color = 'green';
+                }
+            })
+            .catch(error => {
+                modalMessage.textContent = 'Error: ' + error;
+                modalMessage.style.color = 'red';
+                contactModal.classList.remove('hidden');
+            });
+        });
+
+        modalOk.addEventListener('click', () => {
+            contactModal.classList.add('hidden');
+            contactForm.reset();
+        });
+
+        modalCancel.addEventListener('click', () => {
+            contactModal.classList.add('hidden');
+        });
+
+        // Plagiarism, AI, and Reports
+        const checkForm = document.getElementById('checkForm');
+        const checkResult = document.getElementById('checkResult');
+
+        checkForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const formData = new FormData(checkForm);
+
+            fetch('/check', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.message) {
+                    checkResult.innerHTML = `${data.message}<br>AI Check: ${data.ai_message} (Confidence: ${data.ai_confidence}%)<br>Language: ${data.language}`;
+                } else if (data.error) {
+                    checkResult.textContent = data.error;
+                    checkResult.style.color = 'red';
+                }
+            })
+            .catch(error => {
+                checkResult.textContent = 'Error: ' + error;
+                checkResult.style.color = 'red';
+            });
+        });
+
+        // Reports Modal
+        const viewReportsBtn = document.getElementById('viewReportsBtn');
+        const reportModal = document.getElementById('reportModal');
+        const reportList = document.getElementById('reportList');
+        const closeModalBtn = document.getElementById('closeModalBtn');
+
+        viewReportsBtn.addEventListener('click', () => {
+            fetch('/reports')
+                .then(response => response.json())
+                .then(data => {
+                    reportList.innerHTML = data.map(report => `
+                        <div class="report-item p-3 border-b border-gray-200">
+                            <p><strong>${report.timestamp}</strong>: Score ${report.plagiarism_score.toFixed(2)}, AI ${report.ai_confidence.toFixed(2)}%, Lang ${report.language}</p>
+                            <p class="text-sm text-gray-500 truncate">Text: ${report.text}</p>
+                        </div>
+                    `).join('');
+                    reportModal.classList.remove('hidden');
+                    setTimeout(() => reportModal.querySelector('.modal-content').classList.add('active'), 10);
+                })
+                .catch(error => {
+                    reportList.innerHTML = `<p class="text-red-500">Error loading reports: ${error}</p>`;
+                    reportModal.classList.remove('hidden');
+                    setTimeout(() => reportModal.querySelector('.modal-content').classList.add('active'), 10);
+                });
+        });
+
+        closeModalBtn.addEventListener('click', () => {
+            reportModal.classList.add('hidden');
+            reportModal.querySelector('.modal-content').classList.remove('active');
+        });
+
+        // Close modal on outside click
+        window.addEventListener('click', (e) => {
+            if (e.target === reportModal) {
+                reportModal.classList.add('hidden');
+                reportModal.querySelector('.modal-content').classList.remove('active');
+            }
+        });
+    </script>
